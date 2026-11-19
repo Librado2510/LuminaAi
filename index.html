@@ -1,542 +1,89 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Lumina IA</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Generador IA — Galería personal</title>
 <style>
-:root{--bg:#f4faf7;--surface:#fff;--soft:#e6f3ed;--line:#cfe3d9;--mint:#3ecf9a;--deep:#0f7a58;--text:#10231b;--muted:#5b7468;--err:#b3261e;color-scheme:light}
-@media(prefers-color-scheme:dark){:root{--bg:#0d1612;--surface:#14211b;--soft:#1b2d25;--line:#2a4237;--mint:#3ecf9a;--deep:#6fe3b9;--text:#e8f4ee;--muted:#8fa89b;--err:#ff8a80;color-scheme:dark}}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,"Segoe UI",Roboto,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
-main{max-width:620px;margin:0 auto;padding:20px 16px 40px}
-h1{font:700 28px/1.15 Georgia,"Times New Roman",serif;margin:4px 0 6px}
-.brand{color:var(--deep);font-weight:600;font-size:14px}
-.sub{color:var(--muted);margin:0 0 20px}
-label{display:block;font-weight:600;font-size:14px;margin:16px 0 6px}
-textarea,select,input{width:100%;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:12px;font:inherit}
-textarea{min-height:96px;resize:vertical}
-:focus-visible{outline:3px solid var(--mint);outline-offset:2px}
-.note{font-size:13px;color:var(--muted);margin:6px 0 0}
-button{font:inherit;font-weight:600;border:0;border-radius:12px;padding:13px 18px;cursor:pointer}
-.go{width:100%;margin-top:20px;background:var(--mint);color:#06281c;font-size:17px}
-.go:disabled{opacity:.5;cursor:not-allowed}
-.row{display:flex;gap:10px;margin-top:12px}
-.row button{flex:1;background:var(--soft);color:var(--text);border:1px solid var(--line)}
-.card{margin-top:20px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px}
-.bar{height:8px;background:var(--soft);border-radius:8px;overflow:hidden;margin:10px 0}
-.bar i{display:block;height:100%;width:0;background:var(--mint);transition:width .5s}
-.err{color:var(--err);font-weight:600}
-img.out{width:100%;border-radius:12px;display:block;margin-top:12px}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
-.th{position:relative}
-.th img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block;cursor:pointer}
-.th button{position:absolute;top:4px;right:4px;width:28px;height:28px;padding:0;border-radius:50%;background:rgba(0,0,0,.6);color:#fff}
-[hidden]{display:none!important}
+:root{color-scheme:dark;--bg:#0b1020;--panel:#141c31;--panel2:#1b2741;--line:#2b3a5d;--txt:#edf2ff;--muted:#aab7d3;--accent:#8b7cff;--accent2:#4ed6c2;--danger:#ff6b7a}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#1a2450 0,#0b1020 55%);font:15px system-ui,-apple-system,Segoe UI,sans-serif;color:var(--txt);min-height:100vh}
+header{padding:25px 20px 12px;text-align:center}h1{margin:0;font-size:clamp(25px,5vw,38px);letter-spacing:-1px}header p{color:var(--muted);margin:8px auto;max-width:700px}
+main{max-width:1120px;margin:auto;padding:14px 16px 50px}.layout{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px;align-items:start}
+.panel{background:rgba(20,28,49,.94);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 15px 40px #0003}
+label{display:block;font-weight:650;margin:12px 0 7px}textarea,input,select{width:100%;border:1px solid var(--line);background:#0d1528;color:var(--txt);border-radius:11px;padding:12px;font:inherit;outline:none}textarea:focus,input:focus,select:focus{border-color:var(--accent)}textarea{min-height:118px;resize:vertical}
+.row{display:flex;gap:10px}.row>*{flex:1;min-width:0}
+button{border:0;border-radius:11px;padding:12px 15px;font:700 14px system-ui;cursor:pointer;color:#10152a;background:linear-gradient(110deg,#9b8cff,#5ce0cc)}button:disabled{opacity:.5;cursor:wait}.secondary{background:#263553;color:var(--txt);border:1px solid var(--line)}.danger{background:#482633;color:#ffdce1;border:1px solid #75404c}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:15px}.actions button{flex:1}
+.small{font-size:12px;color:var(--muted);line-height:1.5}.status{margin-top:12px;padding:10px 12px;background:#0d1528;border-radius:10px;color:var(--muted);min-height:42px}.status.error{color:#ff9da7}.status.ok{color:#75e5c5}
+.preview{margin-top:18px;min-height:230px;border:1px dashed #435477;border-radius:14px;display:grid;place-items:center;overflow:hidden;background:#0d1528}.preview img{display:block;max-width:100%;max-height:650px;object-fit:contain}.placeholder{text-align:center;color:var(--muted);padding:30px}
+.gallery-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:24px 0 12px}.gallery-head h2{margin:0;font-size:20px}.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}.tile{background:var(--panel);border:1px solid var(--line);border-radius:13px;overflow:hidden}.tile img{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:#080d19}.tile-info{padding:9px}.tile-info p{font-size:12px;color:var(--muted);margin:0 0 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}.tile-buttons{display:flex;gap:6px}.tile-buttons button{padding:7px 9px;font-size:12px;flex:1}
+.key-note{border-left:3px solid var(--accent2);padding:9px 11px;background:#10272b;border-radius:5px;color:#c9f8ee;font-size:12px;line-height:1.5;margin-top:10px}
+.check{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-top:8px}.check input{width:auto}
+@media(max-width:800px){.layout{grid-template-columns:1fr}.side{order:-1}.gallery{grid-template-columns:repeat(auto-fill,minmax(135px,1fr))}}
 </style>
 </head>
 <body>
+<header><h1>✨ Generador de imágenes IA</h1><p>Crea imágenes desde texto y conserva tu galería en este dispositivo.</p></header>
 <main>
-  <div class="brand">Lumina · estudio IA</div>
-  <h1>Imagina algo que aún no existe.</h1>
-  <p class="sub">Convierte una idea en imagen con modelos abiertos.</p>
-
-  <label for="engine">Motor</label>
-  <select id="engine">
-    <option value="pollinations">Rápido (Pollinations, con clave gratuita)</option>
-    <option value="horde">AI Horde (cola anónima, puede tardar)</option>
-  </select>
-  <div id="pollBox" hidden>
-    <label for="pkey">Clave gratuita de Pollinations</label>
-    <input id="pkey" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Pega aquí tu clave">
-    <p class="note">Pollinations ya no atiende bien las peticiones sin clave (por eso salía el error 404). Crea una cuenta gratis en enter.pollinations.ai, copia tu clave y pégala aquí. Se guarda solo en este navegador.</p>
-  </div>
-  <div id="hordeBox" hidden>
-  <label for="model">Modelo (AI Horde)</label>
-  <select id="model"></select>
-  <p class="note" id="modelNote">Buscando modelos activos…</p>
-  <button class="go" id="diag" style="margin-top:8px;background:var(--soft);color:var(--text);font-size:14px;padding:9px">Probar conexión</button>
-  </div>
-
-  <label for="prompt">Tu idea</label>
-  <textarea id="prompt" placeholder="Describe el sujeto, el ambiente, el estilo y la luz.">Un pequeño zorro rojo bajo un cielo de auroras, fotografía cinematográfica, luz suave, muchos detalles</textarea>
-
-  <label for="neg">Prompt negativo (opcional)</label>
-  <input id="neg" placeholder="Lo que prefieres evitar: borroso, texto, marca de agua">
-
-  <button class="go" id="go">Crear imagen</button>
-  <p class="note">Requiere internet. El prompt se envía a un servicio comunitario gratuito (Pollinations o AI Horde, según el motor). Con Pollinations el límite gratuito es de unas pocas imágenes por minuto.</p>
-
-  <section class="card" id="status" hidden aria-live="polite">
-    <div id="msg"></div>
-    <div class="bar"><i id="fill"></i></div>
-    <div class="note" id="detail"></div>
-    <div class="row">
-      <button id="cancel">Cancelar</button>
-      <button id="retry" hidden>Reintentar</button>
-    </div>
-  </section>
-
-  <section class="card" id="result" hidden>
-    <strong>Tu creación</strong>
-    <img class="out" id="img" alt="Imagen generada">
-    <div class="row">
-      <button id="save">Guardar</button>
-      <button id="share">Compartir</button>
-    </div>
-  </section>
-  <section class="card" id="galleryCard" hidden>
-    <strong>Mis creaciones</strong>
-    <p class="note">Se guardan en este navegador. Toca una para verla; × la borra.</p>
-    <div class="grid" id="gallery"></div>
-  </section>
+<div class="layout">
+<section class="panel">
+<label for="prompt">¿Qué imagen quieres crear?</label>
+<textarea id="prompt" placeholder="Ej.: Un zorro astronauta caminando por una ciudad futurista bajo la lluvia, iluminación cinematográfica, gran detalle..."></textarea>
+<div class="row">
+<div><label for="model">Modelo</label><select id="model"><option value="flux">FLUX (Pollinations)</option></select></div>
+<div><label for="size">Formato</label><select id="size"><option value="1024x1024">Cuadrado (1:1)</option><option value="1024x768">Horizontal (4:3)</option><option value="768x1024">Vertical (3:4)</option><option value="1280x720">Panorámico (16:9)</option><option value="720x1280">Historia (9:16)</option></select></div>
+</div>
+<label for="negative">Elementos que quieres evitar (opcional)</label><input id="negative" placeholder="Ej.: texto, marcas de agua, manos deformes">
+<div class="actions"><button id="generate">Generar imagen</button><button class="secondary" id="clearPrompt">Limpiar</button></div>
+<div id="status" class="status" role="status">Preparado. Añade tu clave API en el panel de configuración.</div>
+<div class="preview" id="preview"><div class="placeholder">🖼️<br>Tu imagen aparecerá aquí</div></div>
+<div class="actions" id="imageActions" hidden><button class="secondary" id="downloadCurrent">Descargar imagen</button></div>
+</section>
+<aside class="panel side">
+<h2 style="margin:0 0 8px;font-size:19px">⚙️ Configuración API</h2>
+<label for="apiKey">Clave API de Pollinations</label><input id="apiKey" type="password" autocomplete="off" placeholder="Pega aquí tu clave sk_...">
+<div class="check"><input id="rememberKey" type="checkbox"><label for="rememberKey" style="margin:0;font-weight:400">Recordar clave en este navegador</label></div>
+<div class="actions"><button class="secondary" id="saveKey">Guardar configuración</button><button class="secondary" id="forgetKey">Olvidar clave</button></div>
+<div class="key-note">La clave es personal. No existe una clave universal gratuita que pueda incrustar aquí. Para evitar exponerla, crea una clave con permisos y presupuesto limitados. No compartas este archivo con la clave guardada.</div>
+<p class="small">Consigue tu clave en <a href="https://enter.pollinations.ai/keys" target="_blank" rel="noopener" style="color:#b9adff">enter.pollinations.ai/keys</a>. La generación puede consumir saldo/créditos según las condiciones vigentes del proveedor.</p>
+<hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+<h3 style="font-size:16px;margin:0 0 8px">💾 Tu galería</h3>
+<p class="small">Las imágenes se guardan en IndexedDB dentro de este navegador, no en la nube. Si borras los datos del sitio/navegador, podrías perderlas. Descarga copias importantes.</p>
+<div class="small" id="galleryCount">Cargando galería...</div>
+<div class="actions"><button class="secondary" id="exportAll">Exportar galería</button><button class="danger" id="deleteAll">Borrar todo</button></div>
+</aside>
+</div>
+<div class="gallery-head"><h2>Mis creaciones</h2><span class="small">Guardadas en este dispositivo</span></div>
+<div id="gallery" class="gallery"></div>
 </main>
-
 <script>
-"use strict";
-const API = "https://aihorde.net/api/v2";
-const KEY = "0000000000";
-const AGENT = "LuminaIA-Web:1.0:anonymous";
-const MAX_WAIT_MS = 12 * 60 * 1000;
-
-// Modelos de la app original (nombre en AI Horde + ajustes típicos)
-const CATALOG = [
-  {n:"Z-Image-Turbo", label:"Z-Image Turbo (recomendado)", steps:8, cfg:1, sampler:"k_euler"},
-  {n:"Flux.1-Schnell fp8 (Compact)", label:"Flux.1-Schnell", steps:4, cfg:1, sampler:"k_euler"},
-  {n:"SDXL 1.0", label:"SDXL 1.0", steps:25, cfg:7, sampler:"k_euler_a"},
-  {n:"AlbedoBase XL (SDXL)", label:"AlbedoBase XL", steps:25, cfg:7, sampler:"k_euler_a"},
-  {n:"AlbedoBase XL 3.1", label:"AlbedoBase XL 3.1", steps:25, cfg:7, sampler:"k_euler_a"},
-  {n:"Animagine XL", label:"Animagine XL", steps:25, cfg:7, sampler:"k_euler_a"},
-  {n:"Juggernaut XL", label:"Juggernaut XL", steps:25, cfg:7, sampler:"k_euler_a"}
-];
-const $ = id => document.getElementById(id);
-const sleep = (ms, sig) => new Promise((res, rej) => {
-  const t = setTimeout(res, ms);
-  sig && sig.addEventListener("abort", () => { clearTimeout(t); rej(new DOMException("abort","AbortError")); });
-});
-const jitter = ms => ms * (0.8 + Math.random() * 0.4);
-
-let ctrl = null, currentId = null, blobUrl = null, lastBlob = null;
-
-function show(msg, detail, pct, isErr) {
-  $("status").hidden = false;
-  $("msg").textContent = msg;
-  $("msg").className = isErr ? "err" : "";
-  $("detail").textContent = detail || "";
-  if (pct != null) $("fill").style.width = pct + "%";
-}
-
-// Sin AbortSignal dentro de fetch: el visor de la app de Claude lo reenvía con postMessage y falla.
-// El tiempo límite y la cancelación se resuelven con Promise.race.
-function raceWith(p, ms, sig) {
-  return new Promise((resolve, reject) => {
-    const t = setTimeout(() => { const x = new Error("aihorde.net no respondió en " + ms / 1000 + " s."); x.name = "TimeoutError"; reject(x); }, ms);
-    const onAbort = () => { clearTimeout(t); reject(new DOMException("abort", "AbortError")); };
-    if (sig) { if (sig.aborted) return onAbort(); sig.addEventListener("abort", onAbort, {once: true}); }
-    p.then(v => { clearTimeout(t); resolve(v); }, e => { clearTimeout(t); reject(e); });
-  });
-}
-
-async function api(path, opts = {}, sig) {
-  const method = opts.method || "GET";
-  const headers = {"Accept": "application/json"};
-  if (method !== "GET") { headers["apikey"] = KEY; headers["Client-Agent"] = AGENT; }
-  if (opts.body) headers["Content-Type"] = "application/json";
-  const init = {method: method, headers: headers};
-  if (opts.body) init.body = opts.body;
-  const res = await raceWith(fetch(API + path, init), 25000, sig);
-  let data = null;
-  try { data = await raceWith(res.json(), 15000, sig); } catch (e) { if (e.name === "AbortError") throw e; }
-  return {res, data};
-}
-
-function netMsg(e) {
-  if (e.name === "TimeoutError") return e.message;
-  if (e.name === "DataCloneError") return "Este visor no permite la conexión. Abre el archivo en Chrome (Descargas > Lumina-IA.html).";
-  if (/failed to fetch|networkerror|load failed/i.test(e.message || "")) return "La conexión fue bloqueada. Si ves este archivo dentro de la app de Claude, ese visor no deja acceder a aihorde.net: guarda el archivo y ábrelo en Chrome.";
-  if (e instanceof TypeError) return "No se pudo conectar con aihorde.net. Revisa tu conexión, VPN, DNS privado o bloqueadores.";
-  return e.message || "Ocurrió un error al generar la imagen.";
-}
-
-async function testConn() {
-  show("Probando conexión con AI Horde…", "", 5);
-  $("retry").hidden = true; $("cancel").hidden = true;
-  try {
-    const r = await api("/status/heartbeat");
-    if (r.res.ok) show("Conexión correcta con AI Horde.", "Versión del servicio: " + ((r.data && r.data.version) || "?"), 0);
-    else show("AI Horde respondió con el código " + r.res.status + ".", "Es un problema del servicio; inténtalo más tarde.", 0, true);
-  } catch (e) { show(netMsg(e), e.name + ": " + e.message, 0, true); }
-}
-
-// Petición con reintentos (backoff exponencial + jitter) solo para errores seguros de repetir
-async function apiRetry(path, opts, sig, tries = 5, safeNetworkRetry = true) {
-  let delay = 2000;
-  for (let i = 0; i < tries; i++) {
-    try {
-      const r = await api(path, opts, sig);
-      if (![429, 500, 502, 503, 504].includes(r.res.status)) return r;
-      if (i === tries - 1) return r;
-      let ra = 0; try { ra = parseInt(r.res.headers.get("Retry-After")) || 0; } catch (e) {}
-      show("El servicio está ocupado, reintentando…", "Código " + r.res.status + " · intento " + (i+2) + " de " + tries);
-      await sleep(Math.max(jitter(delay), ra * 1000), sig);
-    } catch (e) {
-      if (e.name === "AbortError") throw e;
-      if (!safeNetworkRetry || i === tries - 1) throw e;
-      show("Sin conexión, reintentando…", "Intento " + (i+2) + " de " + tries);
-      await sleep(jitter(delay), sig);
-    }
-    delay = Math.min(delay * 2, 30000);
-  }
-}
-
-async function loadModels() {
-  const sel = $("model");
-  let live = null;
-  try {
-    const {res, data} = await apiRetry("/status/models?type=image", {}, null, 3);
-    if (res.ok && Array.isArray(data)) live = new Map(data.map(m => [m.name, m.count]));
-  } catch (e) {}
-  sel.innerHTML = "";
-  if (live) {
-    const avail = CATALOG.filter(m => (live.get(m.n) || 0) > 0);
-    avail.forEach(m => sel.add(new Option(m.label + " · " + live.get(m.n) + " equipos", m.n)));
-    if (avail.length) {
-      $("modelNote").textContent = avail.length + " modelos con equipos activos ahora.";
-      return;
-    }
-  }
-  CATALOG.forEach(m => sel.add(new Option(m.label, m.n)));
-  $("modelNote").textContent = live
-    ? "Ningún modelo del catálogo tiene equipos activos ahora. Puedes probar de todos modos."
-    : "Sin conexión al catálogo. Puedes probar de todos modos.";
-}
-
-let pendingResume = null, running = false;
-const JOB_KEY = "lumina.job";
-const saveJob = j => { try { localStorage.setItem(JOB_KEY, JSON.stringify(j)); } catch (e) {} };
-const loadJob = () => { try { return JSON.parse(localStorage.getItem(JOB_KEY)); } catch (e) { return null; } };
-const clearJob = () => { try { localStorage.removeItem(JOB_KEY); } catch (e) {} };
-
-// Galería persistente (IndexedDB)
-const DB = {
-  open() {
-    return new Promise((res, rej) => {
-      const r = indexedDB.open("lumina", 1);
-      r.onupgradeneeded = () => r.result.createObjectStore("pics", {keyPath: "id", autoIncrement: true});
-      r.onsuccess = () => res(r.result);
-      r.onerror = () => rej(r.error);
-    });
-  },
-  async tx(mode, fn) {
-    const db = await this.open();
-    return new Promise((res, rej) => {
-      const t = db.transaction("pics", mode);
-      const rq = fn(t.objectStore("pics"));
-      t.oncomplete = () => { db.close(); res(rq && rq.result); };
-      t.onerror = () => rej(t.error);
-      t.onabort = () => rej(t.error);
-    });
-  }
-};
-let galleryUrls = [];
-async function renderGallery() {
-  let items = [];
-  try { items = await DB.tx("readonly", s => s.getAll()); } catch (e) {}
-  galleryUrls.forEach(u => URL.revokeObjectURL(u)); galleryUrls = [];
-  const box = $("gallery"); box.innerHTML = "";
-  $("galleryCard").hidden = !items.length;
-  items.slice().reverse().forEach(it => {
-    const w = document.createElement("div"); w.className = "th";
-    const im = document.createElement("img");
-    const u = URL.createObjectURL(it.blob); galleryUrls.push(u);
-    im.src = u; im.alt = it.prompt || "Creación"; im.loading = "lazy";
-    im.onclick = () => showResult(it.blob);
-    const x = document.createElement("button");
-    x.textContent = "×"; x.setAttribute("aria-label", "Borrar imagen");
-    x.onclick = async ev => {
-      ev.stopPropagation();
-      if (!confirm("¿Borrar esta imagen de tus creaciones?")) return;
-      try { await DB.tx("readwrite", s => s.delete(it.id)); } catch (e) {}
-      renderGallery();
-    };
-    w.append(im, x); box.append(w);
-  });
-}
-async function addToGallery(blob, prompt, model) {
-  try {
-    await DB.tx("readwrite", s => s.add({blob, prompt, model, date: Date.now()}));
-    if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
-  } catch (e) { $("detail").textContent = "No se pudo guardar en la galería de este navegador."; }
-  renderGallery();
-}
-function showResult(blob) {
-  lastBlob = blob;
-  if (blobUrl) URL.revokeObjectURL(blobUrl);
-  blobUrl = URL.createObjectURL(blob);
-  $("img").src = blobUrl; $("img").dataset.remote = "";
-  $("result").hidden = false;
-  $("result").scrollIntoView({behavior: "smooth", block: "nearest"});
-}
-
-async function instant(prompt, neg) {
-  running = true;
-  ctrl = new AbortController();
-  const sig = ctrl.signal;
-  currentId = null;
-  $("go").disabled = true; $("retry").hidden = true; $("cancel").hidden = false;
-  $("result").hidden = true;
-  try {
-    show("Creando tu imagen…", "Normalmente tarda unos segundos.", 30);
-    const key = ($("pkey").value || "").trim();
-    const q = new URLSearchParams({model: "flux", width: "768", height: "768", seed: String(Math.floor(Math.random() * 1e9)), nologo: "true"});
-    if (neg) q.set("negative_prompt", neg);
-    if (key) q.set("key", key);
-    const base = key ? "https://gen.pollinations.ai/image/" : "https://image.pollinations.ai/prompt/";
-    const url = base + encodeURIComponent(prompt) + "?" + q.toString();
-    let blob = null, delay = 16000, direct = false;
-    for (let i = 0; i < 4; i++) {
-      let r;
-      try {
-        r = await raceWith(fetch(url), 90000, sig);
-      } catch (e) {
-        if (e.name === "AbortError" || e.name === "TimeoutError") throw e;
-        direct = true; break;   // el navegador no dejó leerla (CORS): se muestra directamente
-      }
-      if (r.status === 429 || r.status >= 500) {
-        if (i === 3) throw new Error("El servicio instantáneo está saturado (HTTP " + r.status + "). Espera un momento o usa AI Horde.");
-        show("Límite del servicio gratuito, reintentando…", "Intento " + (i + 2) + " de 4 en unos " + Math.round(delay / 1000) + " s.", 30);
-        await sleep(jitter(delay), sig);
-        delay = Math.min(delay * 2, 40000);
-        continue;
-      }
-      if (r.status === 404 && !key) throw new Error("Pollinations ya no ofrece este acceso sin clave (HTTP 404). Pega una clave gratuita o cambia a AI Horde.");
-      if (r.status === 401 || r.status === 403) throw new Error("La clave de Pollinations no es válida o no tiene permiso (HTTP " + r.status + ").");
-      if (r.status === 402) throw new Error("Tu clave de Pollinations no tiene saldo para este modelo (HTTP 402).");
-      if (!r.ok) throw new Error("Error del servicio instantáneo (HTTP " + r.status + ").");
-      blob = await raceWith(r.blob(), 60000, sig);
-      if (!blob.type || blob.type.indexOf("image/") !== 0) throw new Error("El servicio devolvió una respuesta inesperada. Inténtalo de nuevo.");
-      break;
-    }
-    $("cancel").hidden = true;
-    if (blob) {
-      show("Imagen lista.", "", 100);
-      showResult(blob);
-      await addToGallery(blob, prompt, "pollinations");
-    } else if (direct) {
-      await raceWith(new Promise((res, rej) => {
-        const im = $("img");
-        im.onload = res;
-        im.onerror = () => rej(new Error("No se pudo cargar la imagen. Revisa tu conexión o usa AI Horde."));
-        im.src = url;
-      }), 90000, sig);
-      lastBlob = null; $("img").dataset.remote = url;
-      $("result").hidden = false;
-      show("Imagen lista.", "No se pudo guardar en tus creaciones; guarda la imagen ahora.", 100);
-    }
-  } catch (e) {
-    if (e.name === "AbortError") show("Generación cancelada.", "", 0);
-    else { show(netMsg(e), "Detalle técnico: " + e.name + " · " + (e.message || ""), 0, true); $("retry").hidden = false; }
-    $("cancel").hidden = true;
-  } finally {
-    running = false;
-    $("go").disabled = false;
-  }
-}
-
-async function generate() {
-  const rj = pendingResume; pendingResume = null;
-  if (running) return;
-  const prompt = rj ? rj.prompt : $("prompt").value.trim();
-  if (!prompt) { show("Escribe una idea para crear la imagen.", "", 0, true); return; }
-  if (!rj && $("engine").value === "pollinations") return instant(prompt, $("neg").value.trim());
-  const cfg = CATALOG.find(m => m.n === (rj ? rj.model : $("model").value)) || CATALOG[0];
-  const neg = rj ? "" : $("neg").value.trim();
-
-  running = true;
-  ctrl = new AbortController();
-  const sig = ctrl.signal;
-  currentId = null;
-  $("go").disabled = true; $("retry").hidden = true; $("cancel").hidden = false;
-  $("result").hidden = true;
-
-  try {
-    let t0;
-    if (rj) {
-      currentId = rj.id; t0 = rj.t0;
-      show("Retomando tu creación en curso…", "", 15);
-    } else {
-      show("Enviando tu idea…", "", 3);
-      const body = {
-        prompt: neg ? prompt + " ### " + neg : prompt,
-        params: {sampler_name: cfg.sampler, cfg_scale: cfg.cfg, steps: cfg.steps, width: 512, height: 512, n: 1},
-        models: [cfg.n], nsfw: false, censor_nsfw: true, r2: true, shared: false
-      };
-      // La creación solo se repite ante 429/5xx (el servidor no la aceptó); no ante cortes de red, para no duplicar.
-      const {res, data} = await apiRetry("/generate/async", {method: "POST", body: JSON.stringify(body)}, sig, 4, false);
-      if (!res.ok || !data || !data.id) {
-        const rc = data && data.rc ? " [" + data.rc + "]" : "";
-        throw new Error((data && data.message ? data.message : "Error del servicio") + " (HTTP " + res.status + ")" + rc);
-      }
-      currentId = data.id; t0 = Date.now();
-      saveJob({id: currentId, model: cfg.n, prompt: prompt, t0: t0});   // permite retomar la espera si sales de la página
-    }
-
-    let failures = 0;
-    for (;;) {
-      if (Date.now() - t0 > MAX_WAIT_MS) throw new Error("La espera superó 12 minutos. Intenta otra vez más tarde.");
-      let r;
-      try {
-        r = await api("/generate/check/" + currentId, {}, sig);
-      } catch (e) {
-        if (e.name === "AbortError") throw e;
-        if (++failures > 6) throw new Error("Se perdió la conexión con AI Horde. " + netMsg(e));
-        show("Sin conexión, reintentando…", "Tu solicitud sigue en cola.");
-        await sleep(jitter(Math.min(3000 * 2 ** failures, 30000)), sig);
-        continue;
-      }
-      if ([429, 500, 502, 503, 504].includes(r.res.status)) {
-        if (++failures > 8) throw new Error("Error del servicio (" + r.res.status + ")");
-        await sleep(jitter(Math.min(3000 * 2 ** failures, 30000)), sig);
-        continue;
-      }
-      if (r.res.status === 404) throw new Error("La solicitud expiró. Vuelve a intentarlo.");
-      failures = 0;
-      const d = r.data || {};
-      if (d.faulted) throw new Error("El modelo tuvo un fallo temporal. Prueba otro modelo.");
-      if (d.done) break;
-      if (d.is_possible === false) throw new Error("Ningún equipo puede atender este modelo ahora. Prueba otro modelo.");
-
-      let msg, pct;
-      if (d.processing > 0) { msg = "El modelo está trabajando…"; pct = 60; }
-      else if (d.queue_position > 0) { msg = "En cola · posición " + d.queue_position; pct = 15; }
-      else { msg = "En cola, esperando un equipo disponible…"; pct = 10; }
-      show(msg, d.wait_time != null ? "Espera estimada: " + d.wait_time + " s" : "", pct);
-      const wait = Math.min(Math.max((d.wait_time || 0) * 1000 / 4, 3000), 10000);
-      await sleep(jitter(wait), sig);
-    }
-
-    show("Descargando imagen…", "", 90);
-    const st = await apiRetry("/generate/status/" + currentId, {}, sig);
-    const gen = st.data && st.data.generations && st.data.generations[0];
-    if (!st.res.ok || !gen || !gen.img) throw new Error("No se recibió ninguna imagen.");
-    if (gen.censored) throw new Error("La imagen fue filtrada por contenido. Cambia la idea e inténtalo de nuevo.");
-
-    let blob = null;
-    try {
-      if (/^https?:/.test(gen.img)) {
-        const ir = await raceWith(fetch(gen.img), 40000, sig);
-        if (!ir.ok) throw new Error("img");
-        blob = await ir.blob();
-      } else {
-        const bin = atob(gen.img), u = new Uint8Array(bin.length);
-        for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
-        blob = new Blob([u], {type: "image/webp"});
-      }
-    } catch (e) {
-      if (e.name === "AbortError") throw e;
-    }
-    clearJob(); currentId = null;
-    $("cancel").hidden = true;
-    show("Imagen lista.", "", 100);
-    if (blob) {
-      showResult(blob);
-      await addToGallery(blob, prompt, cfg.n);
-    } else {   // no se pudo descargar: se muestra desde la URL, sin guardarla en la galería
-      lastBlob = null;
-      $("img").src = gen.img; $("img").dataset.remote = gen.img;
-      $("result").hidden = false;
-      $("detail").textContent = "No se pudo guardar en tus creaciones; guarda la imagen ahora.";
-    }
-  } catch (e) {
-    if (e.name === "AbortError") {
-      show("Generación cancelada.", "", 0);
-    } else {
-      show(netMsg(e), "Detalle técnico: " + e.name + " · " + (e.message || ""), 0, true);
-      $("retry").hidden = false;
-      if (currentId) cancelRemote();
-    }
-    clearJob();
-    $("cancel").hidden = true;
-  } finally {
-    running = false;
-    $("go").disabled = false;
-  }
-}
-
-function cancelRemote() {
-  const id = currentId; currentId = null;
-  if (id) fetch(API + "/generate/status/" + id, {method: "DELETE", headers: {apikey: KEY, "Client-Agent": AGENT}}).catch(() => {});
-}
-
-$("go").onclick = generate;
-$("diag").onclick = testConn;
-$("retry").onclick = generate;
-$("cancel").onclick = () => { if (ctrl) ctrl.abort(); cancelRemote(); };
-
-function fileName() { return "Lumina_" + Date.now() + ".webp"; }
-$("save").onclick = () => {
-  if (window.LuminaAndroid && lastBlob) {   // dentro de la app Android (WebView)
-    const fr = new FileReader();
-    fr.onload = () => {
-      const b64 = String(fr.result).split(",")[1] || "";
-      const ok = window.LuminaAndroid.saveImage(b64, lastBlob.type || "image/webp");
-      show(ok === "ok" ? "Imagen guardada en Imágenes/LuminaIA." : "No se pudo guardar: " + ok, "", ok === "ok" ? 100 : 0, ok !== "ok");
-    };
-    fr.readAsDataURL(lastBlob);
-    return;
-  }
-  const a = document.createElement("a");
-  if (lastBlob) { a.href = blobUrl; a.download = fileName(); a.click(); }
-  else { window.open($("img").dataset.remote, "_blank", "noopener"); }
-};
-$("share").onclick = async () => {
-  try {
-    if (lastBlob && navigator.canShare) {
-      const f = new File([lastBlob], fileName(), {type: lastBlob.type || "image/webp"});
-      if (navigator.canShare({files: [f]})) { await navigator.share({files: [f], title: "Lumina IA"}); return; }
-    }
-  } catch (e) { if (e.name === "AbortError") return; }
-  $("save").click();
-};
-
-let embedded = false;
-try { embedded = window.self !== window.top || location.protocol === "about:"; } catch (e) { embedded = true; }
-if (embedded) {
-  const w = document.createElement("p");
-  w.className = "note err";
-  w.textContent = "Estás en un visor integrado, que bloquea el acceso a AI Horde. Para generar imágenes, abre este archivo en Chrome.";
-  $("engine").after(w);
-}
-function syncEngine() {
-  const e = $("engine").value;
-  $("hordeBox").hidden = e !== "horde";
-  $("pollBox").hidden = e !== "pollinations";
-  try { localStorage.setItem("lumina.engine2", e); } catch (x) {}
-}
-try {
-  const k = localStorage.getItem("lumina.pkey");
-  if (k) $("pkey").value = k;
-  const eg = localStorage.getItem("lumina.engine2");
-  $("engine").value = eg || (k ? "pollinations" : "horde");
-} catch (e) { $("engine").value = "horde"; }
-$("pkey").oninput = () => { try { localStorage.setItem("lumina.pkey", $("pkey").value.trim()); } catch (e) {} };
-$("engine").onchange = syncEngine;
-syncEngine();
-loadModels().then(() => {
-  const j = loadJob();
-  if (j && j.id && Date.now() - j.t0 < 20 * 60 * 1000) {
-    $("engine").value = "horde"; syncEngine();
-    $("prompt").value = j.prompt;
-    if ([...$("model").options].some(o => o.value === j.model)) $("model").value = j.model;
-    pendingResume = j; generate();
-  } else clearJob();
-});
-renderGallery();
-document.addEventListener("visibilitychange", () => {
-  if (document.hidden || running) return;
-  const j = loadJob();
-  if (j && j.id && Date.now() - j.t0 < 20 * 60 * 1000) { pendingResume = j; generate(); }
-});
+const $=id=>document.getElementById(id);
+let currentBlob=null, currentUrl=null, db;
+const DB_NAME='GaleriaGeneradorIA', STORE='images';
+function setStatus(msg,type=''){const s=$('status');s.textContent=msg;s.className='status '+type}
+function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=()=>{const d=req.result;if(!d.objectStoreNames.contains(STORE))d.createObjectStore(STORE,{keyPath:'id',autoIncrement:true})};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+function tx(mode,fn){return new Promise((resolve,reject)=>{const t=db.transaction(STORE,mode),s=t.objectStore(STORE);let result;try{result=fn(s)}catch(e){reject(e);return}t.oncomplete=()=>resolve(result?.result);t.onerror=()=>reject(t.error)})}
+async function allImages(){return new Promise((resolve,reject)=>{const r=db.transaction(STORE).objectStore(STORE).getAll();r.onsuccess=()=>resolve(r.result.reverse());r.onerror=()=>reject(r.error)})}
+async function refreshGallery(){const items=await allImages();$('galleryCount').textContent=items.length+' imagen(es) guardada(s)';$('gallery').innerHTML='';if(!items.length){$('gallery').innerHTML='<div class="small">Todavía no has creado imágenes.</div>';return}
+for(const item of items){const url=URL.createObjectURL(item.blob),tile=document.createElement('article');tile.className='tile';const img=document.createElement('img');img.src=url;img.alt=item.prompt;const info=document.createElement('div');info.className='tile-info';const p=document.createElement('p');p.textContent=item.prompt;const btns=document.createElement('div');btns.className='tile-buttons';const dl=document.createElement('button');dl.textContent='Descargar';dl.className='secondary';dl.onclick=()=>downloadBlob(item.blob,'imagen-ia-'+item.id+'.png');const del=document.createElement('button');del.textContent='Eliminar';del.className='danger';del.onclick=async()=>{await tx('readwrite',s=>s.delete(item.id));URL.revokeObjectURL(url);refreshGallery()};const use=document.createElement('button');use.textContent='Ver';use.className='secondary';use.onclick=()=>showCurrent(item.blob);btns.append(dl,use,del);info.append(p,btns);tile.append(img,info);$('gallery').append(tile)}}
+function showCurrent(blob){currentBlob=blob;if(currentUrl)URL.revokeObjectURL(currentUrl);currentUrl=URL.createObjectURL(blob);$('preview').innerHTML='';const img=document.createElement('img');img.src=currentUrl;img.alt='Imagen generada';$('preview').append(img);$('imageActions').hidden=false}
+function downloadBlob(blob,name){const a=document.createElement('a'),u=URL.createObjectURL(blob);a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500)}
+$('saveKey').onclick=()=>{const key=$('apiKey').value.trim();if(!key){setStatus('Pega primero tu clave API.','error');return}if($('rememberKey').checked){localStorage.setItem('pollinations_user_key',key);sessionStorage.removeItem('pollinations_user_key')}else{sessionStorage.setItem('pollinations_user_key',key);localStorage.removeItem('pollinations_user_key')}setStatus('Clave guardada en este navegador.','ok')};
+$('forgetKey').onclick=()=>{localStorage.removeItem('pollinations_user_key');sessionStorage.removeItem('pollinations_user_key');$('apiKey').value='';$('rememberKey').checked=false;setStatus('Clave eliminada de este navegador.','ok')};
+const stored=localStorage.getItem('pollinations_user_key')||sessionStorage.getItem('pollinations_user_key');if(stored){$('apiKey').value=stored;$('rememberKey').checked=!!localStorage.getItem('pollinations_user_key')}
+$('clearPrompt').onclick=()=>{$('prompt').value='';$('negative').value=''};
+$('downloadCurrent').onclick=()=>{if(currentBlob)downloadBlob(currentBlob,'imagen-generada.png')};
+$('generate').onclick=async()=>{const prompt=$('prompt').value.trim(),key=$('apiKey').value.trim();if(!prompt){setStatus('Escribe una descripción para la imagen.','error');return}if(!key){setStatus('Necesitas una clave API personal. Consíguela desde el enlace del panel y pégala aquí.','error');return}
+const [width,height]=$('size').value.split('x');const fullPrompt=$('negative').value.trim()?prompt+'. Avoid: '+$('negative').value.trim():prompt;
+const btn=$('generate');btn.disabled=true;btn.textContent='Generando...';setStatus('Conectando con Pollinations. Puede tardar un poco...');try{
+const url='https://gen.pollinations.ai/image/'+encodeURIComponent(fullPrompt)+'?model='+encodeURIComponent($('model').value)+'&width='+width+'&height='+height+'&nologo=true';
+const response=await fetch(url,{headers:{'Authorization':'Bearer '+key}});
+if(!response.ok){let detail='';try{detail=await response.text()}catch{}throw new Error('Error HTTP '+response.status+(detail?': '+detail.slice(0,220):''))}
+const blob=await response.blob();if(!blob.type.startsWith('image/'))throw new Error('El proveedor no devolvió un archivo de imagen.');await tx('readwrite',s=>s.add({blob,prompt,createdAt:Date.now(),model:$('model').value}));showCurrent(blob);await refreshGallery();setStatus('¡Imagen creada y guardada en tu galería!','ok')
+}catch(e){setStatus('No se pudo generar: '+e.message+'. Revisa tu clave, saldo, conexión o disponibilidad del modelo.','error')}finally{btn.disabled=false;btn.textContent='Generar imagen'}};
+$('exportAll').onclick=async()=>{const items=await allImages();if(!items.length){setStatus('No hay imágenes para exportar.');return}for(let i=0;i<items.length;i++){downloadBlob(items[i].blob,'galeria-ia-'+items[i].id+'.png');await new Promise(r=>setTimeout(r,250))}};
+$('deleteAll').onclick=async()=>{if(!confirm('¿Seguro que quieres borrar todas las imágenes guardadas? Esta acción no se puede deshacer.'))return;await tx('readwrite',s=>s.clear());$('preview').innerHTML='<div class="placeholder">🖼️<br>Tu imagen aparecerá aquí</div>';$('imageActions').hidden=true;currentBlob=null;refreshGallery();setStatus('Galería vaciada.','ok')};
+(async()=>{try{db=await openDB();await refreshGallery()}catch(e){$('galleryCount').textContent='No se pudo abrir el almacenamiento local: '+e.message}})();
 </script>
 </body>
 </html>
