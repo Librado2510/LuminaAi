@@ -30,9 +30,10 @@ button{border:0;border-radius:11px;padding:12px 15px;font:700 14px system-ui;cur
 <label for="prompt">¿Qué imagen quieres crear?</label>
 <textarea id="prompt" placeholder="Ej.: Un zorro astronauta caminando por una ciudad futurista bajo la lluvia, iluminación cinematográfica, gran detalle..."></textarea>
 <div class="row">
-<div><label for="model">Modelo</label><select id="model"><option value="flux">FLUX (Pollinations)</option></select></div>
+<div><label for="model">Modelo</label><select id="model"><option value="flux">FLUX.1 Schnell · rápido</option><option value="zimage">Z-Image Turbo · muy rápido</option><option value="dreamshaper">DreamShaper LCM · ultrarrápido</option><option value="klein">FLUX.2 Klein · más calidad, más lento</option><option value="__custom">Otro modelo (escribir ID)…</option></select></div>
 <div><label for="size">Formato</label><select id="size"><option value="1024x1024">Cuadrado (1:1)</option><option value="1024x768">Horizontal (4:3)</option><option value="768x1024">Vertical (3:4)</option><option value="1280x720">Panorámico (16:9)</option><option value="720x1280">Historia (9:16)</option></select></div>
 </div>
+<input id="customModel" placeholder="ID del modelo, ej.: gptimage" hidden style="margin-top:8px"><p class="small" id="modelHint" style="margin:8px 0 0"></p>
 <label for="negative">Elementos que quieres evitar (opcional)</label><input id="negative" placeholder="Ej.: texto, marcas de agua, manos deformes">
 <div class="actions"><button id="generate">Generar imagen</button><button class="secondary" id="clearPrompt">Limpiar</button></div>
 <div id="status" class="status" role="status">Preparado. Añade tu clave API en el panel de configuración.</div>
@@ -45,7 +46,7 @@ button{border:0;border-radius:11px;padding:12px 15px;font:700 14px system-ui;cur
 <div class="check"><input id="rememberKey" type="checkbox"><label for="rememberKey" style="margin:0;font-weight:400">Recordar clave en este navegador</label></div>
 <div class="actions"><button class="secondary" id="saveKey">Guardar configuración</button><button class="secondary" id="forgetKey">Olvidar clave</button></div>
 <div class="key-note">La clave es personal. No existe una clave universal gratuita que pueda incrustar aquí. Para evitar exponerla, crea una clave con permisos y presupuesto limitados. No compartas este archivo con la clave guardada.</div>
-<p class="small">Consigue tu clave en <a href="https://enter.pollinations.ai/keys" target="_blank" rel="noopener" style="color:#b9adff">enter.pollinations.ai/keys</a>. La generación puede consumir saldo/créditos según las condiciones vigentes del proveedor.</p>
+<p class="small">Consigue tu clave en <a href="https://enter.pollinations.ai/keys" target="_blank" rel="noopener" style="color:#b9adff">enter.pollinations.ai/keys</a>. Cada imagen gasta una fracción de Pollen (saldo gratis de misiones o de pago). Comprueba tu saldo y los modelos disponibles en enter.pollinations.ai/models.</p>
 <hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
 <h3 style="font-size:16px;margin:0 0 8px">💾 Tu galería</h3>
 <p class="small">Las imágenes se guardan en IndexedDB dentro de este navegador, no en la nube. Si borras los datos del sitio/navegador, podrías perderlas. Descarga copias importantes.</p>
@@ -60,12 +61,22 @@ button{border:0;border-radius:11px;padding:12px 15px;font:700 14px system-ui;cur
 const $=id=>document.getElementById(id);
 let currentBlob=null, currentUrl=null, db;
 const DB_NAME='GaleriaGeneradorIA', STORE='images';
+const MODELS={
+flux:{hint:'FLUX.1 Schnell: rápido y con buen detalle. Cuesta ≈0,002 pollen por imagen.'},
+zimage:{hint:'Z-Image Turbo: muy rápido (unos segundos). Cuesta ≈0,004 pollen por imagen.'},
+dreamshaper:{hint:'DreamShaper LCM: el más rápido y barato. Rinde mejor en tamaños pequeños, así que limita el lado mayor a 768 px.',maxSide:768},
+klein:{hint:'FLUX.2 Klein 4B: más calidad, pero tarda más (puede pasar de 20 s). Cuesta ≈0,005 pollen por imagen.'}};
+function currentModel(){const v=$('model').value;return v==='__custom'?($('customModel').value.trim()||'flux'):v}
+function fitSize(w,h,max){if(!max||Math.max(w,h)<=max)return[w,h];const k=max/Math.max(w,h),r=n=>Math.max(64,Math.round(n*k/64)*64);return[r(w),r(h)]}
+function updateModelUI(){const v=$('model').value,c=v==='__custom';$('customModel').hidden=!c;$('modelHint').textContent=c?'Escribe un ID de enter.pollinations.ai/models. Los marcados como «paid-only» necesitan saldo de pago.':(MODELS[v]?MODELS[v].hint:'');try{localStorage.setItem('gen_model',v)}catch{}}
+try{const m=localStorage.getItem('gen_model');if(m&&[...$('model').options].some(o=>o.value===m))$('model').value=m}catch{}
+$('model').onchange=updateModelUI;updateModelUI();
 function setStatus(msg,type=''){const s=$('status');s.textContent=msg;s.className='status '+type}
 function openDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(DB_NAME,1);req.onupgradeneeded=()=>{const d=req.result;if(!d.objectStoreNames.contains(STORE))d.createObjectStore(STORE,{keyPath:'id',autoIncrement:true})};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 function tx(mode,fn){return new Promise((resolve,reject)=>{const t=db.transaction(STORE,mode),s=t.objectStore(STORE);let result;try{result=fn(s)}catch(e){reject(e);return}t.oncomplete=()=>resolve(result?.result);t.onerror=()=>reject(t.error)})}
 async function allImages(){return new Promise((resolve,reject)=>{const r=db.transaction(STORE).objectStore(STORE).getAll();r.onsuccess=()=>resolve(r.result.reverse());r.onerror=()=>reject(r.error)})}
 async function refreshGallery(){const items=await allImages();$('galleryCount').textContent=items.length+' imagen(es) guardada(s)';$('gallery').innerHTML='';if(!items.length){$('gallery').innerHTML='<div class="small">Todavía no has creado imágenes.</div>';return}
-for(const item of items){const url=URL.createObjectURL(item.blob),tile=document.createElement('article');tile.className='tile';const img=document.createElement('img');img.src=url;img.alt=item.prompt;const info=document.createElement('div');info.className='tile-info';const p=document.createElement('p');p.textContent=item.prompt;const btns=document.createElement('div');btns.className='tile-buttons';const dl=document.createElement('button');dl.textContent='Descargar';dl.className='secondary';dl.onclick=()=>downloadBlob(item.blob,'imagen-ia-'+item.id+'.png');const del=document.createElement('button');del.textContent='Eliminar';del.className='danger';del.onclick=async()=>{await tx('readwrite',s=>s.delete(item.id));URL.revokeObjectURL(url);refreshGallery()};const use=document.createElement('button');use.textContent='Ver';use.className='secondary';use.onclick=()=>showCurrent(item.blob);btns.append(dl,use,del);info.append(p,btns);tile.append(img,info);$('gallery').append(tile)}}
+for(const item of items){const url=URL.createObjectURL(item.blob),tile=document.createElement('article');tile.className='tile';const img=document.createElement('img');img.src=url;img.alt=item.prompt;const info=document.createElement('div');info.className='tile-info';const p=document.createElement('p');p.textContent=(item.model?item.model+' · ':'')+item.prompt;const btns=document.createElement('div');btns.className='tile-buttons';const dl=document.createElement('button');dl.textContent='Descargar';dl.className='secondary';dl.onclick=()=>downloadBlob(item.blob,'imagen-ia-'+item.id+'.png');const del=document.createElement('button');del.textContent='Eliminar';del.className='danger';del.onclick=async()=>{await tx('readwrite',s=>s.delete(item.id));URL.revokeObjectURL(url);refreshGallery()};const use=document.createElement('button');use.textContent='Ver';use.className='secondary';use.onclick=()=>showCurrent(item.blob);btns.append(dl,use,del);info.append(p,btns);tile.append(img,info);$('gallery').append(tile)}}
 function showCurrent(blob){currentBlob=blob;if(currentUrl)URL.revokeObjectURL(currentUrl);currentUrl=URL.createObjectURL(blob);$('preview').innerHTML='';const img=document.createElement('img');img.src=currentUrl;img.alt='Imagen generada';$('preview').append(img);$('imageActions').hidden=false}
 function downloadBlob(blob,name){const a=document.createElement('a'),u=URL.createObjectURL(blob);a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1500)}
 $('saveKey').onclick=()=>{const key=$('apiKey').value.trim();if(!key){setStatus('Pega primero tu clave API.','error');return}if($('rememberKey').checked){localStorage.setItem('pollinations_user_key',key);sessionStorage.removeItem('pollinations_user_key')}else{sessionStorage.setItem('pollinations_user_key',key);localStorage.removeItem('pollinations_user_key')}setStatus('Clave guardada en este navegador.','ok')};
@@ -74,12 +85,12 @@ const stored=localStorage.getItem('pollinations_user_key')||sessionStorage.getIt
 $('clearPrompt').onclick=()=>{$('prompt').value='';$('negative').value=''};
 $('downloadCurrent').onclick=()=>{if(currentBlob)downloadBlob(currentBlob,'imagen-generada.png')};
 $('generate').onclick=async()=>{const prompt=$('prompt').value.trim(),key=$('apiKey').value.trim();if(!prompt){setStatus('Escribe una descripción para la imagen.','error');return}if(!key){setStatus('Necesitas una clave API personal. Consíguela desde el enlace del panel y pégala aquí.','error');return}
-const [width,height]=$('size').value.split('x');const fullPrompt=$('negative').value.trim()?prompt+'. Avoid: '+$('negative').value.trim():prompt;
-const btn=$('generate');btn.disabled=true;btn.textContent='Generando...';setStatus('Conectando con Pollinations. Puede tardar un poco...');try{
-const url='https://gen.pollinations.ai/image/'+encodeURIComponent(fullPrompt)+'?model='+encodeURIComponent($('model').value)+'&width='+width+'&height='+height+'&nologo=true';
+const model=currentModel();const [width,height]=fitSize(...$('size').value.split('x').map(Number),(MODELS[model]||{}).maxSide);const fullPrompt=$('negative').value.trim()?prompt+'. Avoid: '+$('negative').value.trim():prompt;
+const btn=$('generate');btn.disabled=true;btn.textContent='Generando...';setStatus('Generando con '+model+'... puede tardar unos segundos.');try{
+const url='https://gen.pollinations.ai/image/'+encodeURIComponent(fullPrompt)+'?model='+encodeURIComponent(model)+'&width='+width+'&height='+height+'&nologo=true';
 const response=await fetch(url,{headers:{'Authorization':'Bearer '+key}});
-if(!response.ok){let detail='';try{detail=await response.text()}catch{}throw new Error('Error HTTP '+response.status+(detail?': '+detail.slice(0,220):''))}
-const blob=await response.blob();if(!blob.type.startsWith('image/'))throw new Error('El proveedor no devolvió un archivo de imagen.');await tx('readwrite',s=>s.add({blob,prompt,createdAt:Date.now(),model:$('model').value}));showCurrent(blob);await refreshGallery();setStatus('¡Imagen creada y guardada en tu galería!','ok')
+if(!response.ok){let detail='';try{detail=await response.text()}catch{}const hint=response.status===402||response.status===403?' (puede ser un modelo de pago o tu saldo gratuito se agotó)':response.status===429?' (demasiadas peticiones; espera unos segundos)':'';throw new Error('Error HTTP '+response.status+hint+(detail?': '+detail.slice(0,220):''))}
+const blob=await response.blob();if(!blob.type.startsWith('image/'))throw new Error('El proveedor no devolvió un archivo de imagen.');await tx('readwrite',s=>s.add({blob,prompt,createdAt:Date.now(),model}));showCurrent(blob);await refreshGallery();setStatus('¡Imagen creada y guardada en tu galería!','ok')
 }catch(e){setStatus('No se pudo generar: '+e.message+'. Revisa tu clave, saldo, conexión o disponibilidad del modelo.','error')}finally{btn.disabled=false;btn.textContent='Generar imagen'}};
 $('exportAll').onclick=async()=>{const items=await allImages();if(!items.length){setStatus('No hay imágenes para exportar.');return}for(let i=0;i<items.length;i++){downloadBlob(items[i].blob,'galeria-ia-'+items[i].id+'.png');await new Promise(r=>setTimeout(r,250))}};
 $('deleteAll').onclick=async()=>{if(!confirm('¿Seguro que quieres borrar todas las imágenes guardadas? Esta acción no se puede deshacer.'))return;await tx('readwrite',s=>s.clear());$('preview').innerHTML='<div class="placeholder">🖼️<br>Tu imagen aparecerá aquí</div>';$('imageActions').hidden=true;currentBlob=null;refreshGallery();setStatus('Galería vaciada.','ok')};
